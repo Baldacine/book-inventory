@@ -1,10 +1,11 @@
-import { render, screen } from "./test/test-utils";
+import { render, screen } from "@/test/test-utils";
 import { describe, it, expect } from "vitest";
-import App from "./App";
+import App from "@/App";
 
 describe("App", () => {
-  it("renders Hello text", () => {
+  it("should render header and home page", () => {
     render(<App />);
-    expect(screen.getByText("Hello")).toBeInTheDocument();
+
+    expect(screen.getByRole("heading", { name: /hello/i })).toBeInTheDocument();
   });
 });

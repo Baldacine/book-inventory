@@ -1,8 +1,8 @@
 import { type ReactNode } from "react";
 import { ThemeProvider as StyledThemeProvider } from "styled-components";
-import { lightTheme, darkTheme } from "../../theme";
-import { ThemeContext } from "./ThemeProvider";
-import { useThemeStore } from "../store/themeStore";
+import { lightTheme, darkTheme } from "@/theme";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useThemeStore } from "@/app/store/themeStore";
 
 interface Props {
   children: ReactNode;
