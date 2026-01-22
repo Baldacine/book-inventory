@@ -1,4 +1,14 @@
 {
+  "compilerOptions": {
+    "baseUrl": ".",
+   "paths": {
+      "@shared/*": ["src/shared/*"]
+    },
+    "types": [
+      "vitest/globals",
+      "node"
+    ]
+  },
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
