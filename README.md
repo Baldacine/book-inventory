@@ -6,7 +6,7 @@ The main goal of this project is to show how to structure a React application, m
 
 ## Live Demo
 
-<https://book-inventory.vercel.app>
+<https://bookinventoryapp.vercel.app>
 
 ## Technologies Used
 
