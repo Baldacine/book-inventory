@@ -22,7 +22,7 @@ const saveLocalBooks = (books: Book[]) => {
 
 export const getAll = async (
     page = 1,
-    limit = 5,
+    limit = 10,
     query = "fiction"
 ): Promise<{ data: Book[]; total: number }> => {
     await delay(300);
