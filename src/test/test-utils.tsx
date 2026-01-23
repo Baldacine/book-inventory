@@ -1,10 +1,15 @@
 /* eslint-disable react-refresh/only-export-components */
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { render, type RenderOptions } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { AppThemeProvider } from "@/app/providers/AppThemeProvider";
 
-const AllProviders = ({ children }: { children: React.ReactNode }) => {
-  return <AppThemeProvider>{children}</AppThemeProvider>;
+const AllProviders = ({ children }: { children: ReactNode }) => {
+  return (
+    <MemoryRouter>
+      <AppThemeProvider>{children}</AppThemeProvider>
+    </MemoryRouter>
+  );
 };
 
 const customRender = (

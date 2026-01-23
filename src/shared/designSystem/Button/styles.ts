@@ -50,9 +50,14 @@ const buttonVariants: Record<ButtonVariant, (theme: DefaultTheme) => string> = {
         padding: 0;
         aspect-ratio: 1 / 1; 
         &:hover:not(:disabled) {
-            background: ${theme.colors.gray100};
+            background: ${theme.colors.white};
             border-color: ${theme.colors.primary};
         }
+        &:disabled {
+            border-color: ${theme.colors.gray300};
+            color: ${theme.colors.gray300};
+        }
+            
     `,
 };
 
