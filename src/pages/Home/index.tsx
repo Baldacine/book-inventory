@@ -45,6 +45,9 @@ export const HomePage: React.FC = () => {
             color: "#007bff",
             fontSize: "14px",
           }}
+          onClick={() => {
+            navigate(`/books/${book.id}`, { state: { book } });
+          }}
         >
           {book.title}
         </span>
@@ -216,28 +219,28 @@ export const HomePage: React.FC = () => {
         />
       )}
 
-      <BookFormModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedBook(undefined);
-        }}
-        book={selectedBook}
-        books={books}
-        onSave={async (savedBook: Book) => {
-          try {
+      {isModalOpen && (
+        <BookFormModal
+          key={selectedBook?.id ?? "new"}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedBook(undefined);
+          }}
+          book={selectedBook}
+          books={books}
+          onSave={async (savedBook: Book) => {
             if (selectedBook) {
               await updateBook(savedBook);
             } else {
               await addBook(savedBook);
             }
+            setIsModalOpen(false);
             setSelectedBook(undefined);
-          } catch (error) {
-            console.error("Erro ao salvar livro:", error);
-          }
-        }}
-        showToast={showToast}
-      />
+          }}
+          showToast={showToast}
+        />
+      )}
       <Toasts />
     </Container>
   );
