@@ -1,10 +1,11 @@
 import type { Book } from "@/@types/book";
 import type { GoogleBookItem, GoogleBooksResponse } from "@/@types/googleBook";
 import { ENV } from "@/config/env";
-import { cleanOverview } from "@/utils/helpers";
+import { calculateBookAge, cleanOverview, formatPublishedDateUS } from "@/utils/helpers";
 
 const STORAGE_KEY = "books_inventory";
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+const MAX_TOTAL_ITEMS = 100;
 
 const loadLocalBooks = (): Book[] => {
     try {
@@ -26,6 +27,8 @@ export const getAll = async (
 ): Promise<{ data: Book[]; total: number }> => {
     await delay(300);
 
+    const localBooks = loadLocalBooks();
+
     const startIndex = (page - 1) * limit;
 
     const res = await fetch(
@@ -33,26 +36,36 @@ export const getAll = async (
     );
     const json: GoogleBooksResponse = await res.json();
 
-    const localBooks = page === 1 ? loadLocalBooks() : [];
-
     const googleBooks: Book[] =
-        json.items?.map((item) => ({
-            id: item.id,
-            title: item.volumeInfo.title ?? "Unknown",
-            author: item.volumeInfo.authors?.join(", ") ?? "Unknown",
-            category: item.volumeInfo.category?.join(", ") ?? "Unknown",
-            publishedDate: item.volumeInfo.publishedDate ?? "Unknown",
-            publisher: item.volumeInfo.publisher ?? "Unknown",
-            overview: cleanOverview(item.searchInfo?.textSnippet) ?? item.volumeInfo.description ?? "",
-            age: 0,
-            thumbnail: item.volumeInfo.imageLinks?.thumbnail ?? "",
-            email: `teste-${Date.now()}@gmail.com`,
-        })) ?? [];
+        json.items?.map((item) => {
+            const local = localBooks.find((b) => b.id === item.id);
+            if (local) return local;
+
+            return {
+                id: item.id,
+                title: item.volumeInfo.title ?? "Unknown",
+                author: item.volumeInfo.authors?.join(", ") ?? "Unknown",
+                category: item.volumeInfo.category?.join(", ") ?? "Unknown",
+                publishedDate: formatPublishedDateUS(item.volumeInfo.publishedDate),
+                publisher: item.volumeInfo.publisher ?? "Unknown",
+                overview: cleanOverview(item.searchInfo?.textSnippet) ?? item.volumeInfo.description ?? "",
+                age: calculateBookAge(item.volumeInfo.publishedDate),
+                thumbnail: item.volumeInfo.imageLinks?.thumbnail ?? "",
+                email: `teste-${Date.now()}@gmail.com`,
+            };
+        }) ?? [];
+
+    const total = Math.min(json.totalItems ?? googleBooks.length, MAX_TOTAL_ITEMS);
 
     return {
-        data: [...localBooks, ...googleBooks],
-        total: (page === 1 ? localBooks.length : 0) + (json.totalItems ?? googleBooks.length),
+        data: googleBooks,
+        total,
     };
+};
+
+
+export const getLocalBooks = async (): Promise<Book[]> => {
+    return loadLocalBooks();
 };
 
 export const get = async (id: string): Promise<Book | undefined> => {
@@ -70,15 +83,14 @@ export const get = async (id: string): Promise<Book | undefined> => {
         title: item.volumeInfo.title ?? "Unknown",
         author: item.volumeInfo.authors?.join(", ") ?? "Unknown",
         category: item.volumeInfo.category?.join(", ") ?? "Unknown",
-        publishedDate: item.volumeInfo.publishedDate ?? "Unknown",
+        publishedDate: formatPublishedDateUS(item.volumeInfo.publishedDate),
         publisher: item.volumeInfo.publisher ?? "Unknown",
         overview: cleanOverview(item.searchInfo?.textSnippet) ?? item.volumeInfo.description ?? "",
         thumbnail: item.volumeInfo.imageLinks?.thumbnail ?? "",
-        age: 0,
+        age: calculateBookAge(item.volumeInfo.publishedDate),
         email: `teste-${Date.now()}@gmail.com`,
     };
 };
-
 
 export const post = async (book: Omit<Book, "id">): Promise<Book> => {
     await delay(300);
@@ -92,11 +104,16 @@ export const put = async (book: Book): Promise<Book> => {
     await delay(300);
     const localBooks = loadLocalBooks();
     const index = localBooks.findIndex((b) => b.id === book.id);
-    if (index === -1) throw new Error("Book not found");
-    localBooks[index] = book;
+    if (index === -1) {
+        localBooks.push(book);
+    } else {
+        localBooks[index] = book;
+    }
+
     saveLocalBooks(localBooks);
     return book;
 };
+
 
 export const patch = async (id: string, partial: Partial<Book>): Promise<Book> => {
     await delay(300);

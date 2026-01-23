@@ -9,5 +9,4 @@ export interface Book {
     thumbnail?: string;
     age?: number;
     email?: string;
-
 }

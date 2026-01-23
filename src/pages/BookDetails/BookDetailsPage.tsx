@@ -1,41 +1,62 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { BookService } from "@/services/BookService";
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/shared/designSystem/Button/Button";
 import { ArrowLeft } from "lucide-react";
 import {
   Container,
   BackButtonWrapper,
   BookCard,
-  BookTitle,
-  BookInfo,
-  InfoRow,
-  FooterButtons,
+  BookContent,
   BookCover,
+  BookHeader,
+  BookTitle,
+  BookMeta,
+  BookOverview,
+  FooterButtons,
 } from "./styles";
 import type { Book } from "@/@types/book";
-import { Loading } from "@/shared/designSystem/Loading/Loading";
+import { BookFormModal } from "../Home/components/BookFormModal/BookFormModal";
+import { useToast } from "@/hooks/useToast";
+import { useBooks } from "@/hooks/useBooks";
+import { books } from "@/services/api/mocks/books";
 
 export const BookDetailsPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [book, setBook] = useState<Book | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const location = useLocation();
+  const stateBook = location.state?.book as Book | undefined;
+  const { updateBook } = useBooks();
 
-  useEffect(() => {
-    if (!id) return;
-    BookService.getById(id)
-      .then((res) => setBook(res))
-      .finally(() => setLoading(false));
-  }, [id]);
+  const [book, setBook] = useState<Book | null>(stateBook ?? null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { showToast, Toasts } = useToast();
 
-  if (loading)
+  const handleUpdate = async (updatedBook: Book) => {
+    try {
+      await updateBook(updatedBook);
+      setBook(updatedBook);
+      showToast(`Book "${updatedBook.title}" updated successfully`, "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to update book", "danger");
+    }
+  };
+
+  if (!book)
     return (
       <Container>
-        <Loading />
+        <BackButtonWrapper>
+          <Button
+            variant="outline"
+            size="small"
+            onClick={() => navigate(-1)}
+            style={{ display: "flex", alignItems: "center", gap: 4 }}
+          >
+            <ArrowLeft size={16} /> Back
+          </Button>
+        </BackButtonWrapper>
+        Book not found
       </Container>
     );
-  if (!book) return <Container>Book not found</Container>;
 
   return (
     <Container>
@@ -46,39 +67,58 @@ export const BookDetailsPage: React.FC = () => {
           onClick={() => navigate(-1)}
           style={{ display: "flex", alignItems: "center", gap: 4 }}
         >
-          <ArrowLeft size={16} />
-          Back
+          <ArrowLeft size={16} /> Back
         </Button>
       </BackButtonWrapper>
 
       <BookCard>
-        {book.thumbnail && <BookCover src={book.thumbnail} alt={book.title} />}
-        <BookTitle>{book.title}</BookTitle>
-        <BookInfo>
-          <InfoRow>
-            <strong>Author:</strong> <span>{book.author}</span>
-          </InfoRow>
-          <InfoRow>
-            <strong>Publisher:</strong> <span>{book.publisher}</span>
-          </InfoRow>
-          <InfoRow>
-            <strong>Published Date:</strong> <span>{book.publishedDate}</span>
-          </InfoRow>
-          <InfoRow>
-            <strong>Overview:</strong> <span>{book.overview}</span>
-          </InfoRow>
-          <InfoRow>
-            <strong>Age:</strong> <span>{book.age}</span>
-          </InfoRow>
-          <InfoRow>
-            <strong>Email:</strong> <span>{book.email}</span>
-          </InfoRow>
-        </BookInfo>
+        <BookContent>
+          {book.thumbnail && (
+            <BookCover src={book.thumbnail} alt={book.title} />
+          )}
+          <div>
+            <BookHeader>
+              <BookTitle>{book.title}</BookTitle>
+              <BookMeta>
+                <span>
+                  <strong>Author:</strong> {book.author}
+                </span>
+              </BookMeta>
+              <BookMeta>
+                <span>
+                  <strong>Publisher:</strong> {book.publisher}
+                </span>
+                |
+                <span>
+                  <strong>Published Date:</strong> {book.publishedDate}
+                </span>
+              </BookMeta>
+            </BookHeader>
+            <hr />
+            <BookOverview>
+              {book.overview || "No overview available."}
+            </BookOverview>
+          </div>
+        </BookContent>
 
         <FooterButtons>
-          <Button onClick={() => navigate(`/edit/${book.id}`)}>Edit</Button>
+          <Button size="small" onClick={() => setIsModalOpen(true)}>
+            Edit Book
+          </Button>
         </FooterButtons>
       </BookCard>
+
+      {isModalOpen && (
+        <BookFormModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          book={book}
+          books={books}
+          onSave={handleUpdate}
+          showToast={showToast}
+        />
+      )}
+      <Toasts />
     </Container>
   );
 };

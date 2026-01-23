@@ -1,6 +1,6 @@
 import type { ChangeEvent } from "react";
 
-export interface InputProps {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
     label?: string;
     required?: boolean;
     type: string;
