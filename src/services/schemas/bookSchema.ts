@@ -1,12 +1,14 @@
 import { z } from "zod";
 
 export const BookSchema = z.object({
-    id: z.number().optional(),
+    id: z.string().optional(),
     title: z.string().min(1, "Title is required"),
     author: z.string().min(1, "Author is required"),
+    category: z.string().optional(),
     publishedDate: z.string().min(1, "Published date is required"),
     publisher: z.string().min(1, "Publisher is required"),
     overview: z.string().min(1, "Overview is required"),
+    image: z.string().optional(),
     age: z
         .number()
         .int("Age must be an integer")
@@ -14,4 +16,4 @@ export const BookSchema = z.object({
     email: z.string().email("Invalid email address"),
 });
 export const BookCreateSchema = BookSchema.omit({ id: true });
-export const BookUpdateSchema = BookSchema.extend({ id: z.number() });
+export const BookUpdateSchema = BookSchema.extend({ id: z.string() });

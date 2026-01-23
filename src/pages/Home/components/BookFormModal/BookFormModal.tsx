@@ -5,8 +5,10 @@ import type { Book } from "@/@types/book";
 import { Modal } from "@/shared/designSystem/Modal/Modal";
 import { Button } from "@/shared/designSystem/Button/Button";
 import { Input } from "@/shared/designSystem/Input/Input";
-import { BookService } from "@/services/bookService";
 import { BookSchema } from "@/services/schemas/bookSchema";
+import { BookService } from "@/services/BookService";
+import { useToast } from "@/hooks/useToast";
+import { ZodError } from "zod";
 
 type BookFormData = Omit<Book, "id">;
 
@@ -31,6 +33,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         publisher: "",
         publishedDate: "",
         overview: "",
+        thumbnail: "",
         age: 0,
         email: "",
       };
@@ -39,6 +42,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
   const [errors, setErrors] = useState<
     Partial<Record<keyof BookFormData, string>>
   >({});
+  const { showToast, Toasts } = useToast();
 
   useEffect(() => {
     setFormData((prev) => {
@@ -54,9 +58,11 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         const emptyForm = {
           title: "",
           author: "",
+          category: "",
           publisher: "",
           publishedDate: "",
           overview: "",
+          thumbnail: "",
           age: 0,
           email: "",
         };
@@ -87,7 +93,18 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
 
       onSave?.(savedBook);
       onClose();
+      showToast("Book saved successfully!", "success");
     } catch (err) {
+      if (err instanceof ZodError) {
+        const zodErr = err as ZodError;
+        const messages = zodErr.message;
+        showToast(messages, "danger");
+      } else if (err instanceof Error) {
+        showToast(err.message || "An unexpected error occurred.", "danger");
+      } else {
+        showToast("An unexpected error occurred.", "danger");
+      }
+
       console.error(err);
     }
   };
@@ -137,7 +154,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         />
         <Input
           label="Published Date"
-          type="date"
+          type="text"
           value={formData.publishedDate}
           onChange={(e) => handleChange("publishedDate", e.target.value)}
           error={errors.publishedDate}
@@ -167,6 +184,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
           error={errors.email}
         />
       </div>
+      <Toasts />
     </Modal>
   );
 };

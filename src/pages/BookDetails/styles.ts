@@ -2,32 +2,40 @@ import styled from "styled-components";
 
 export const Container = styled.div`
   display: flex;
-  justify-content: center;
-  padding: 40px 20px;
-  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
   background-color: ${({ theme }) => theme.colors.background};
+  padding: 24px 16px;
 `;
 
-export const LoadingMessage = styled(Container)`
-  justify-content: center;
-  align-items: center;
-  font-size: 1.2rem;
-  font-weight: 500;
+export const BackButtonWrapper = styled.div`
+  width: 100%;
+  max-width: 800px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: flex-start;
 `;
 
 export const BookCard = styled.div`
-  background-color: ${({ theme }) => theme.colors.gray100};
   color: ${({ theme }) => theme.colors.text};
   padding: 32px;
-  border-radius: 16px;
+  border-radius: ${({ theme }) => theme.borderRadius.lg};
   max-width: 700px;
   width: 100%;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+`;
+
+export const BookCover = styled.img`
+  display: block;
+  margin: 0 auto 24px auto;
+  max-width: 150px;
+  width: 100%;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
+  object-fit: cover;
 `;
 
 export const BookTitle = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: ${({ theme }) => theme.typography.fontSizes.xl};
+  font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
   margin-bottom: 24px;
   text-align: center;
 `;
@@ -41,7 +49,7 @@ export const BookInfo = styled.div`
 export const InfoRow = styled.div`
   display: flex;
   gap: 12px;
-  font-size: 1rem;
+  font-size: ${({ theme }) => theme.typography.fontSizes.md};
 
   strong {
     width: 140px;

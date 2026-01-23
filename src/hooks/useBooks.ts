@@ -1,34 +1,56 @@
-import { useBookStore } from "@/app/store/useBookStore";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { BookService } from "@/services/BookService";
+import type { Book } from "@/@types/book";
 
-export const useBooks = () => {
-    const books = useBookStore((state) => state.books);
-    const total = useBookStore((state) => state.total);
-    const page = useBookStore((state) => state.page);
-    const limit = useBookStore((state) => state.limit);
-    const loading = useBookStore((state) => state.loading);
-    const error = useBookStore((state) => state.error);
+type BooksPage = { data: Book[]; total: number };
 
-    const fetchBooks = useBookStore((state) => state.fetchBooks);
-    const addBook = useBookStore((state) => state.addBook);
-    const updateBook = useBookStore((state) => state.updateBook);
-    const patchBook = useBookStore((state) => state.patchBook);
-    const deleteBook = useBookStore((state) => state.deleteBook);
-    const setPage = useBookStore((state) => state.setPage);
-    const setLimit = useBookStore((state) => state.setLimit);
+export const useBooks = (queryParam: string = "fiction", limitParam: number = 5) => {
+    const queryClient = useQueryClient();
+
+    const booksQuery = useInfiniteQuery<BooksPage, Error>({
+        queryKey: ["books", queryParam, limitParam],
+        queryFn: async ({ pageParam = 1 }) =>
+            BookService.getAll(pageParam as number, limitParam, queryParam),
+        getNextPageParam: (lastPage, allPages) => {
+            const nextPage = allPages.length + 1;
+            return nextPage <= Math.ceil(lastPage.total / limitParam) ? nextPage : undefined;
+        },
+        initialPageParam: 1,
+        staleTime: 1000 * 60 * 5,
+    });
+
+    const addBookMutation = useMutation({
+        mutationFn: BookService.create,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["books"] }),
+    });
+
+    const updateBookMutation = useMutation({
+        mutationFn: BookService.update,
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["books"] }),
+    });
+
+    const patchBookMutation = useMutation({
+        mutationFn: ({ id, partial }: { id: string; partial: Partial<Book> }) =>
+            BookService.patch(id, partial),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["books"] }),
+    });
+
+    const deleteBookMutation = useMutation({
+        mutationFn: (id: string) => BookService.delete(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["books"] }),
+    });
 
     return {
-        books,
-        total,
-        page,
-        limit,
-        loading,
-        error,
-        fetchBooks,
-        addBook,
-        updateBook,
-        patchBook,
-        deleteBook,
-        setPage,
-        setLimit,
+        books: booksQuery.data?.pages.flatMap((page: BooksPage) => page.data) || [],
+        total: booksQuery.data?.pages?.[0]?.total || 0,
+        hasNextPage: booksQuery.hasNextPage,
+        fetchNextPage: booksQuery.fetchNextPage,
+        loading: booksQuery.isLoading,
+        error: booksQuery.error?.message,
+
+        addBook: addBookMutation.mutateAsync,
+        updateBook: updateBookMutation.mutateAsync,
+        patchBook: patchBookMutation.mutateAsync,
+        deleteBook: deleteBookMutation.mutateAsync,
     };
 };

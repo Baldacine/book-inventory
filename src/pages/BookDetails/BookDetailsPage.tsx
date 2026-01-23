@@ -1,18 +1,20 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BookService } from "@/services/bookService";
+import { BookService } from "@/services/BookService";
 import { Button } from "@/shared/designSystem/Button/Button";
+import { ArrowLeft } from "lucide-react";
 import {
   Container,
+  BackButtonWrapper,
   BookCard,
   BookTitle,
   BookInfo,
   InfoRow,
   FooterButtons,
-  LoadingMessage,
+  BookCover,
 } from "./styles";
 import type { Book } from "@/@types/book";
+import { Loading } from "@/shared/designSystem/Loading/Loading";
 
 export const BookDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,18 +24,35 @@ export const BookDetailsPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
-    setLoading(true);
-    BookService.getById(Number(id))
+    BookService.getById(id)
       .then((res) => setBook(res))
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <LoadingMessage>Loading...</LoadingMessage>;
+  if (loading)
+    return (
+      <Container>
+        <Loading />
+      </Container>
+    );
   if (!book) return <Container>Book not found</Container>;
 
   return (
     <Container>
+      <BackButtonWrapper>
+        <Button
+          variant="outline"
+          size="small"
+          onClick={() => navigate(-1)}
+          style={{ display: "flex", alignItems: "center", gap: 4 }}
+        >
+          <ArrowLeft size={16} />
+          Back
+        </Button>
+      </BackButtonWrapper>
+
       <BookCard>
+        {book.thumbnail && <BookCover src={book.thumbnail} alt={book.title} />}
         <BookTitle>{book.title}</BookTitle>
         <BookInfo>
           <InfoRow>
@@ -57,9 +76,6 @@ export const BookDetailsPage: React.FC = () => {
         </BookInfo>
 
         <FooterButtons>
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            Back
-          </Button>
           <Button onClick={() => navigate(`/edit/${book.id}`)}>Edit</Button>
         </FooterButtons>
       </BookCard>

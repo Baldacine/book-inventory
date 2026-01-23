@@ -2,8 +2,9 @@ import styled from "styled-components";
 
 export const TableWrapper = styled.div`
   width: 100%;
-  overflow-x: auto;
-  border-radius: 8px;
+  max-height: 600px; 
+  overflow-y: auto;
+  border-radius: ${({ theme }) => theme.borderRadius.md};
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 `;
 
@@ -21,7 +22,10 @@ export const TableElement = styled.table`
 
   th {
     background-color: ${({ theme }) => theme.colors.gray300};
-    font-weight: 600;
+    font-weight: ${({ theme }) => theme.typography.fontWeights.bold};
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
 
   tbody tr:hover {
@@ -36,12 +40,15 @@ export const TableElement = styled.table`
   }
 `;
 
-export const PaginationWrapper = styled.div`
+export const LoadMoreWrapper = styled.div`
   display: flex;
-  justify-content: flex-end; /* alinhado à direita */
-  align-items: center;
-  margin-top: 16px;
-  gap: 8px;
+  justify-content: center;
+  margin: 16px 0;
 `;
 
-
+export const TotalItems = styled.div`
+  text-align: right;
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.gray700};
+  margin: 8px 0;
+`;

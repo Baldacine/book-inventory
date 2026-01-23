@@ -3,9 +3,9 @@ import * as api from "@/services/api/api";
 import { BookCreateSchema, BookUpdateSchema, BookSchema } from "@/services/schemas/bookSchema";
 
 export const BookService = {
-    getAll: (page = 1, limit = 5) => api.getAll(page, limit),
+    getAll: (page = 1, limit = 5, query = "fiction") => api.getAll(page, limit, query),
 
-    getById: async (id: number): Promise<Book> => {
+    getById: async (id: string): Promise<Book> => {
         const book = await api.get(id);
         if (!book) throw new Error("Book not found");
         return book;
@@ -17,17 +17,17 @@ export const BookService = {
     },
 
     update: async (book: Book): Promise<Book> => {
-        if (book.id === undefined) throw new Error("Book id is required for update");
+        if (!book.id) throw new Error("Book id is required for update");
         const parsed = BookUpdateSchema.parse(book);
         return api.put(parsed);
     },
 
-    patch: async (id: number, partial: Partial<Book>): Promise<Book> => {
+    patch: async (id: string, partial: Partial<Book>): Promise<Book> => {
         const parsed = BookSchema.partial().parse(partial);
         return api.patch(id, parsed);
     },
 
-    delete: async (id: number): Promise<void> => {
+    delete: async (id: string): Promise<void> => {
         return api.del(id);
     },
 };

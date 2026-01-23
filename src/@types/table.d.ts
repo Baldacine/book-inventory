@@ -3,8 +3,3 @@ export interface Column<T> {
     accessor: keyof T | ((row: T) => ReactNode);
 }
 
-export interface TableProps<T> {
-    columns: readonly Column<T>[];
-    data: T[];
-    actions?: (row: T) => ReactNode;
-}

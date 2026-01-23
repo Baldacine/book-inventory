@@ -1,86 +1,61 @@
 import type { ReactNode } from "react";
-import { TableWrapper, TableElement, PaginationWrapper } from "./styles";
-import type { TableProps } from "@/@types/table";
-import { Button } from "../Button/Button";
+import {
+  TableWrapper,
+  TableElement,
+  LoadMoreWrapper,
+  TotalItems,
+} from "./styles";
+import { Loading } from "../Loading/Loading";
+import type { TableProps } from "./type";
 
-export function Table<T extends { id: number }>({
+export function Table<T extends { id: string }>({
   columns,
   data,
   actions,
-  page,
-  limit,
-  total,
-  onPageChange,
-}: TableProps<T> & {
-  page: number;
-  limit: number;
-  total: number;
-  onPageChange: (newPage: number) => void;
-}) {
-  const totalPages = Math.ceil(total / limit);
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-
+  loading = false,
+  hasMore,
+  loadMoreRef,
+}: TableProps<T>) {
   return (
-    <>
-      <TableWrapper>
-        <TableElement>
-          <thead>
-            <tr>
-              {columns.map((col) => (
-                <th key={col.header}>{col.header}</th>
-              ))}
-              {actions && <th>Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((row) => (
-              <tr key={row.id}>
-                {columns.map((col) => {
-                  const value: ReactNode =
-                    typeof col.accessor === "function"
-                      ? col.accessor(row)
-                      : row[col.accessor];
-                  return <td key={String(col.accessor)}>{value}</td>;
-                })}
-                {actions && <td>{actions(row)}</td>}
-              </tr>
+    <TableWrapper>
+      <TableElement>
+        <thead>
+          <tr>
+            {columns.map((col) => (
+              <th key={col.header}>{col.header}</th>
             ))}
-          </tbody>
-        </TableElement>
-      </TableWrapper>
-      {totalPages > 1 && (
-        <PaginationWrapper>
-          <Button
-            size="small"
-            variant="circle"
-            onClick={() => onPageChange(page - 1)}
-            disabled={page <= 1}
-          >
-            &lt;
-          </Button>
-
-          {pages.map((p) => (
-            <Button
-              key={p}
-              size="small"
-              variant="circle"
-              disabled={p === page}
-              onClick={() => onPageChange(p)}
-            >
-              {p}
-            </Button>
+            {actions && <th>Actions</th>}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row) => (
+            <tr key={row.id}>
+              {columns.map((col) => {
+                const value: ReactNode =
+                  typeof col.accessor === "function"
+                    ? col.accessor(row)
+                    : row[col.accessor];
+                return <td key={String(col.accessor)}>{value}</td>;
+              })}
+              {actions && <td>{actions(row)}</td>}
+            </tr>
           ))}
+        </tbody>
+      </TableElement>
 
-          <Button
-            size="small"
-            variant="circle"
-            onClick={() => onPageChange(page + 1)}
-            disabled={page >= totalPages}
-          >
-            &gt;
-          </Button>
-        </PaginationWrapper>
+      {loading && (
+        <LoadMoreWrapper>
+          <Loading text="Loading..." />
+        </LoadMoreWrapper>
       )}
-    </>
+
+      {!hasMore && !loading && data.length > 0 && (
+        <LoadMoreWrapper>All books loaded</LoadMoreWrapper>
+      )}
+
+      <TotalItems>{data.length} books loaded</TotalItems>
+
+      {hasMore && !loading && <div ref={loadMoreRef} style={{ height: 1 }} />}
+    </TableWrapper>
   );
 }

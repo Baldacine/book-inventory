@@ -11,16 +11,11 @@ export const AreaTitleButton = styled.div`
   margin-bottom: 16px;
 `;
 
-export const LoadingMessage = styled.div`
-  padding: 16px;
-  text-align: center;
-  color: ${({ theme }) => theme.colors.primary};
-  font-weight: bold;
-`;
+
 
 export const ErrorMessage = styled.div`
   padding: 16px;
   text-align: center;
   color: ${({ theme }) => theme.colors.danger};
-  font-weight: bold;
+  font-weight: ${({ theme }) => theme.typography.fontWeights.normal};
 `;

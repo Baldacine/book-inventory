@@ -1,32 +1,22 @@
-import { useEffect, useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Book } from "@/@types/book";
 import type { Column } from "@/@types/table";
 
 import { useBooks } from "@/hooks/useBooks";
-import { Table } from "@/shared/designSystem/Table/Table";
 import { Button } from "@/shared/designSystem/Button/Button";
-import {
-  Container,
-  AreaTitleButton,
-  LoadingMessage,
-  ErrorMessage,
-} from "./styles";
+import { Container, AreaTitleButton, ErrorMessage } from "./styles";
 import { BookFormModal } from "./components/BookFormModal/BookFormModal";
-import { Edit2, Trash } from "lucide-react";
+import { Edit2, Trash, Eye } from "lucide-react";
+import { Table } from "@/shared/designSystem/Table/Table";
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-
-  const { books, total, loading, error, page, limit, fetchBooks, deleteBook } =
+  const { books, loading, error, hasNextPage, fetchNextPage, deleteBook } =
     useBooks();
 
   const [selectedBook, setSelectedBook] = useState<Book | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    fetchBooks(page, limit);
-  }, [fetchBooks, page, limit]);
 
   const columns: Column<Book>[] = [
     {
@@ -37,6 +27,7 @@ export const HomePage: React.FC = () => {
             cursor: "pointer",
             textDecoration: "underline",
             color: "#007bff",
+            fontSize: "14px",
           }}
           onClick={() => navigate(`/books/${book.id}`)}
         >
@@ -45,19 +36,32 @@ export const HomePage: React.FC = () => {
       ),
     },
     { header: "Author", accessor: "author" },
-    { header: "Publisher", accessor: "publisher" },
-    { header: "Published Date", accessor: "publishedDate" },
-    { header: "Age", accessor: "age" },
   ];
 
-  const handleSave = () => fetchBooks(page, limit);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Função para trocar de página
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= Math.ceil(total / limit)) {
-      fetchBooks(newPage, limit);
-    }
-  };
+  const loadMoreRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (loading) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && hasNextPage) {
+            fetchNextPage();
+          }
+        },
+        {
+          root: null,
+          rootMargin: "100px",
+          threshold: 0,
+        },
+      );
+
+      if (node) observerRef.current.observe(node);
+    },
+    [loading, fetchNextPage, hasNextPage],
+  );
 
   return (
     <Container>
@@ -74,49 +78,56 @@ export const HomePage: React.FC = () => {
         </Button>
       </AreaTitleButton>
 
-      {loading && <LoadingMessage>Loading books...</LoadingMessage>}
       {error && <ErrorMessage>{error}</ErrorMessage>}
 
-      {!loading && !error && (
-        <Table
-          columns={columns}
-          data={books}
-          actions={(book) => (
-            <>
-              <Button
-                size="small"
-                variant="circle"
-                onClick={() => {
-                  setSelectedBook(book);
-                  setIsModalOpen(true);
-                }}
-                style={{ marginLeft: 10 }}
-              >
-                <Edit2 size={15} />
-              </Button>
-              <Button
-                size="small"
-                variant="circle"
-                color="red"
-                onClick={() => deleteBook(book.id)}
-                style={{ marginLeft: 10, color: "red" }}
-              >
-                <Trash size={15} style={{ color: "red" }} />
-              </Button>
-            </>
-          )}
-          page={page}
-          limit={limit}
-          total={total}
-          onPageChange={handlePageChange}
-        />
-      )}
+      <Table
+        columns={columns}
+        data={books}
+        actions={(book) => (
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button
+              size="small"
+              variant="circle"
+              onClick={() => navigate(`/books/${book.id}`)}
+              title="View Book"
+            >
+              <Eye size={14} />
+            </Button>
+
+            <Button
+              size="small"
+              variant="circle"
+              onClick={() => {
+                setSelectedBook(book);
+                setIsModalOpen(true);
+              }}
+              title="Edit Book"
+            >
+              <Edit2 size={14} />
+            </Button>
+
+            <Button
+              size="small"
+              variant="circle"
+              color="red"
+              style={{ color: "red" }}
+              onClick={() => deleteBook(book.id)}
+              title="Delete Book"
+            >
+              <Trash size={14} />
+            </Button>
+          </div>
+        )}
+        loading={loading}
+        hasMore={hasNextPage}
+        loadMoreRef={loadMoreRef}
+      />
 
       <BookFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         book={selectedBook}
-        onSave={handleSave}
+        onSave={() => {}}
       />
     </Container>
   );
