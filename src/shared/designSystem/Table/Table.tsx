@@ -7,6 +7,7 @@ import {
 } from "./styles";
 import { Loading } from "../Loading/Loading";
 import type { TableProps } from "./type";
+import { useTableHeight } from "@/hooks/useTableHeight";
 
 export function Table<T extends { id: string }>({
   columns,
@@ -16,13 +17,17 @@ export function Table<T extends { id: string }>({
   hasMore,
   loadMoreRef,
 }: TableProps<T>) {
+  const tableHeight = useTableHeight(200);
+
   return (
-    <TableWrapper>
+    <TableWrapper height={tableHeight}>
       <TableElement>
         <thead>
           <tr>
             {columns.map((col) => (
-              <th key={col.header}>{col.header}</th>
+              <th key={col.header} style={{ width: col.width }}>
+                {col.header}
+              </th>
             ))}
             {actions && <th>Actions</th>}
           </tr>
@@ -35,7 +40,11 @@ export function Table<T extends { id: string }>({
                   typeof col.accessor === "function"
                     ? col.accessor(row)
                     : row[col.accessor];
-                return <td key={String(col.accessor)}>{value}</td>;
+                return (
+                  <td key={String(col.accessor)} style={{ width: col.width }}>
+                    {value}
+                  </td>
+                );
               })}
               {actions && <td>{actions(row)}</td>}
             </tr>
@@ -53,9 +62,12 @@ export function Table<T extends { id: string }>({
         <LoadMoreWrapper>All books loaded</LoadMoreWrapper>
       )}
 
-      <TotalItems>{data.length} books loaded</TotalItems>
-
-      {hasMore && !loading && <div ref={loadMoreRef} style={{ height: 1 }} />}
+      {hasMore && !loading && (
+        <div ref={loadMoreRef} style={{ height: 1 }}>
+          <Loading />
+          <TotalItems>{data.length} books loaded</TotalItems>
+        </div>
+      )}
     </TableWrapper>
   );
 }

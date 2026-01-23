@@ -1,13 +1,21 @@
+import { device } from "@/theme";
 import styled from "styled-components";
 
-export const TableWrapper = styled.div`
+export const TableWrapper = styled.div<{ height: number }>`
   width: 100%;
-  max-height: 600px; 
+  max-height: ${({ height }) => height}px;
   overflow-y: auto;
   border-radius: ${({ theme }) => theme.borderRadius.md};
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-`;
 
+  @media ${device.mobile} {
+    max-height: ${({ height }) => height / 2}px; 
+  }
+
+  @media ${device.tablet} {
+    max-height: ${({ height }) => (height * 0.75)}px;
+  }
+`;
 export const TableElement = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -49,6 +57,7 @@ export const LoadMoreWrapper = styled.div`
 export const TotalItems = styled.div`
   text-align: right;
   font-size: 14px;
+  text-align: center;
   color: ${({ theme }) => theme.colors.gray700};
   margin: 8px 0;
 `;

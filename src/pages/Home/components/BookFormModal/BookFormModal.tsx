@@ -9,7 +9,6 @@ import { BookSchema } from "@/services/schemas/bookSchema";
 import { BookService } from "@/services/BookService";
 import { useToast } from "@/hooks/useToast";
 import { ZodError } from "zod";
-
 type BookFormData = Omit<Book, "id">;
 
 interface BookFormModalProps {
@@ -94,18 +93,27 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
       onSave?.(savedBook);
       onClose();
       showToast("Book saved successfully!", "success");
+
+      setErrors({});
     } catch (err) {
       if (err instanceof ZodError) {
-        const zodErr = err as ZodError;
-        const messages = zodErr.message;
-        showToast(messages, "danger");
+        const zodErr = err as ZodError<BookFormData>;
+
+        const fieldErrors: Partial<Record<keyof BookFormData, string>> = {};
+        zodErr.issues.forEach((issue) => {
+          if (issue.path && issue.path[0]) {
+            const field = issue.path[0] as keyof BookFormData;
+            fieldErrors[field] = issue.message;
+          }
+        });
+        setErrors(fieldErrors);
+
+        showToast("Please fix the errors in the form.", "danger");
       } else if (err instanceof Error) {
         showToast(err.message || "An unexpected error occurred.", "danger");
       } else {
         showToast("An unexpected error occurred.", "danger");
       }
-
-      console.error(err);
     }
   };
 
@@ -133,6 +141,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         <Input
           label="Title"
+          required
           type="text"
           value={formData.title}
           onChange={(e) => handleChange("title", e.target.value)}
@@ -140,6 +149,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         />
         <Input
           label="Author"
+          required
           type="text"
           value={formData.author}
           onChange={(e) => handleChange("author", e.target.value)}
@@ -147,6 +157,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         />
         <Input
           label="Publisher"
+          required
           type="text"
           value={formData.publisher}
           onChange={(e) => handleChange("publisher", e.target.value)}
@@ -161,6 +172,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         />
         <Input
           label="Overview"
+          required
           type="text"
           value={formData.overview}
           onChange={(e) => handleChange("overview", e.target.value)}
@@ -169,6 +181,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         />
         <Input
           label="Age"
+          required
           type="number"
           value={(formData.age ?? 0).toString()}
           onChange={(e) =>
@@ -178,6 +191,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         />
         <Input
           label="Email"
+          required
           type="email"
           value={formData.email ?? ""}
           onChange={(e) => handleChange("email", e.target.value)}

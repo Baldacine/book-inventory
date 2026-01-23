@@ -20,6 +20,18 @@ export const HomePage: React.FC = () => {
 
   const columns: Column<Book>[] = [
     {
+      header: "",
+      accessor: (book) => (
+        <img
+          src={book.thumbnail}
+          width={60}
+          height={70}
+          onClick={() => navigate(`/books/${book.id}`)}
+        ></img>
+      ),
+      width: "5%",
+    },
+    {
       header: "Title",
       accessor: (book) => (
         <span
@@ -34,8 +46,9 @@ export const HomePage: React.FC = () => {
           {book.title}
         </span>
       ),
+      width: "30%",
     },
-    { header: "Author", accessor: "author" },
+    { header: "Author", accessor: "author", width: "40%" },
   ];
 
   const observerRef = useRef<IntersectionObserver | null>(null);
