@@ -18,7 +18,7 @@ export function Table<T extends { id: string }>({
   loadMoreRef,
   total,
 }: TableProps<T>) {
-  const tableHeight = useTableHeight(400);
+  const tableHeight = useTableHeight(250);
 
   return (
     <TableWrapper height={tableHeight}>
