@@ -1,5 +1,5 @@
-import { render, screen } from "@/test/test-utils";
-import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@/test/test-utils";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { HomePage } from "@/pages/Home";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppThemeProvider } from "@/app/providers/AppThemeProvider";
@@ -43,6 +43,11 @@ vi.mock("@/hooks/useBooks", () => {
   };
 });
 
+const mockUseResponsive = vi.fn();
+vi.mock("@/hooks/useResponsive", () => ({
+  useResponsive: () => mockUseResponsive(),
+}));
+
 const queryClient = new QueryClient();
 
 const renderWithProviders = (ui: React.ReactElement) =>
@@ -53,6 +58,10 @@ const renderWithProviders = (ui: React.ReactElement) =>
   );
 
 describe("HomePage", () => {
+  beforeEach(() => {
+    mockUseResponsive.mockReturnValue({ isMobile: false });
+  });
+
   it("should render page title and Add New Book button", () => {
     renderWithProviders(<HomePage />);
 
@@ -73,5 +82,30 @@ describe("HomePage", () => {
 
     expect(screen.getByText(/test book 2/i)).toBeInTheDocument();
     expect(screen.getByText(/author 2/i)).toBeInTheDocument();
+  });
+
+  it("should filter books based on search input", () => {
+    renderWithProviders(<HomePage />);
+
+    const searchInput = screen.getByPlaceholderText(
+      /search by title or author/i,
+    );
+
+    fireEvent.change(searchInput, { target: { value: "Book 1" } });
+    expect(screen.getByText(/test book 1/i)).toBeInTheDocument();
+    expect(screen.queryByText(/test book 2/i)).not.toBeInTheDocument();
+
+    const clearButton = screen.getByRole("button", { name: /clear/i });
+    fireEvent.click(clearButton);
+    expect(screen.getByText(/test book 1/i)).toBeInTheDocument();
+    expect(screen.getByText(/test book 2/i)).toBeInTheDocument();
+  });
+
+  it("should render List component on mobile", () => {
+    mockUseResponsive.mockReturnValue({ isMobile: true });
+    renderWithProviders(<HomePage />);
+
+    expect(screen.getByText(/test book 1/i)).toBeInTheDocument();
+    expect(screen.getByText(/test book 2/i)).toBeInTheDocument();
   });
 });
