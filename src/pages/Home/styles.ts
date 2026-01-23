@@ -11,8 +11,6 @@ export const AreaTitleButton = styled.div`
   margin-bottom: 16px;
 `;
 
-
-
 export const ErrorMessage = styled.div`
   padding: 16px;
   text-align: center;

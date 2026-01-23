@@ -4,6 +4,7 @@ import { BookCreateSchema, BookUpdateSchema, BookSchema } from "@/services/schem
 
 export const BookService = {
     getAll: (page = 1, limit = 5, query = "fiction") => api.getAll(page, limit, query),
+    getLocal: () => api.getLocalBooks(),
 
     getById: async (id: string): Promise<Book> => {
         const book = await api.get(id);

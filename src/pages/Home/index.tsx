@@ -9,11 +9,22 @@ import { Container, AreaTitleButton, ErrorMessage } from "./styles";
 import { BookFormModal } from "./components/BookFormModal/BookFormModal";
 import { Edit2, Trash, Eye } from "lucide-react";
 import { Table } from "@/shared/designSystem/Table/Table";
+import { useToast } from "@/hooks/useToast";
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { books, loading, error, hasNextPage, fetchNextPage, deleteBook } =
-    useBooks();
+  const {
+    books,
+    total,
+    loading,
+    error,
+    hasNextPage,
+    fetchNextPage,
+    addBook,
+    updateBook,
+    deleteBook,
+  } = useBooks();
+  const { showToast, Toasts } = useToast();
 
   const [selectedBook, setSelectedBook] = useState<Book | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,17 +36,17 @@ export const HomePage: React.FC = () => {
         <span
           style={{
             cursor: "pointer",
-            textDecoration: "underline",
+            textDecoration: "none",
             color: "#007bff",
             fontSize: "14px",
           }}
-          onClick={() => navigate(`/books/${book.id}`)}
         >
           {book.title}
         </span>
       ),
+      width: "30%",
     },
-    { header: "Author", accessor: "author" },
+    { header: "Author", accessor: "author", width: "40%" },
   ];
 
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -63,6 +74,21 @@ export const HomePage: React.FC = () => {
     [loading, fetchNextPage, hasNextPage],
   );
 
+  const removeBook = async (book: Book) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete "${book.title}"?`,
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await deleteBook(book.id);
+      showToast(`Book "${book.title}" deleted successfully`, "success");
+    } catch (error) {
+      console.error("Error deleting book:", error);
+      showToast(`Failed to delete "${book.title}"`, "danger");
+    }
+  };
+
   return (
     <Container>
       <AreaTitleButton>
@@ -88,7 +114,7 @@ export const HomePage: React.FC = () => {
             <Button
               size="small"
               variant="circle"
-              onClick={() => navigate(`/books/${book.id}`)}
+              onClick={() => navigate(`/books/${book.id}`, { state: { book } })}
               title="View Book"
             >
               <Eye size={14} />
@@ -111,7 +137,9 @@ export const HomePage: React.FC = () => {
               variant="circle"
               color="red"
               style={{ color: "red" }}
-              onClick={() => deleteBook(book.id)}
+              onClick={() => {
+                removeBook(book);
+              }}
               title="Delete Book"
             >
               <Trash size={14} />
@@ -121,14 +149,32 @@ export const HomePage: React.FC = () => {
         loading={loading}
         hasMore={hasNextPage}
         loadMoreRef={loadMoreRef}
+        total={total}
       />
 
       <BookFormModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedBook(undefined);
+        }}
         book={selectedBook}
-        onSave={() => {}}
+        books={books}
+        onSave={async (savedBook: Book) => {
+          try {
+            if (selectedBook) {
+              await updateBook(savedBook);
+            } else {
+              await addBook(savedBook);
+            }
+            setSelectedBook(undefined);
+          } catch (error) {
+            console.error("Erro ao salvar livro:", error);
+          }
+        }}
+        showToast={showToast}
       />
+      <Toasts />
     </Container>
   );
 };

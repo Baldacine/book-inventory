@@ -1,4 +1,6 @@
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from "react";
 import type { Book } from "@/@types/book";
@@ -7,76 +9,52 @@ import { Button } from "@/shared/designSystem/Button/Button";
 import { Input } from "@/shared/designSystem/Input/Input";
 import { BookSchema } from "@/services/schemas/bookSchema";
 import { BookService } from "@/services/BookService";
-import { useToast } from "@/hooks/useToast";
 import { ZodError } from "zod";
-
+import { calculateBookAge } from "@/utils/helpers";
 type BookFormData = Omit<Book, "id">;
 
 interface BookFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   book?: Book;
+  books: Book[];
   onSave?: (book: Book) => void;
+  showToast: (
+    message: string,
+    type?: "success" | "danger" | "warning",
+    duration?: number,
+  ) => void;
 }
 
 export const BookFormModal: React.FC<BookFormModalProps> = ({
   isOpen,
   onClose,
   book,
+  books,
   onSave,
+  showToast,
 }) => {
-  const initialFormData: BookFormData = book
-    ? (({ id, ...rest }) => rest)(book)
-    : {
-        title: "",
-        author: "",
-        publisher: "",
-        publishedDate: "",
-        overview: "",
-        thumbnail: "",
-        age: 0,
-        email: "",
-      };
+  const emptyForm: BookFormData = {
+    title: "",
+    author: "",
+    publisher: "",
+    publishedDate: "",
+    overview: "",
+    thumbnail: "",
+    age: 0,
+    email: "",
+  };
 
-  const [formData, setFormData] = useState<BookFormData>(initialFormData);
+  const [formData, setFormData] = useState<BookFormData>(emptyForm);
   const [errors, setErrors] = useState<
     Partial<Record<keyof BookFormData, string>>
   >({});
-  const { showToast, Toasts } = useToast();
 
   useEffect(() => {
-    setFormData((prev) => {
-      if (book) {
-        const { id, ...rest } = book;
-        const isDifferent = Object.keys(rest).some(
-          (key) =>
-            rest[key as keyof BookFormData] !== prev[key as keyof BookFormData],
-        );
-
-        return isDifferent ? rest : prev;
-      } else {
-        const emptyForm = {
-          title: "",
-          author: "",
-          category: "",
-          publisher: "",
-          publishedDate: "",
-          overview: "",
-          thumbnail: "",
-          age: 0,
-          email: "",
-        };
-        const isDifferent = Object.keys(emptyForm).some(
-          (key) =>
-            emptyForm[key as keyof BookFormData] !==
-            prev[key as keyof BookFormData],
-        );
-        return isDifferent ? emptyForm : prev;
-      }
-    });
-
+    if (!isOpen) return;
+    setFormData(book ? (({ id, ...rest }) => rest)(book) : emptyForm);
     setErrors({});
-  }, [book]);
+  }, [book, isOpen]);
 
   const handleChange = (field: keyof BookFormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -87,25 +65,46 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
     try {
       const validated = BookSchema.parse(formData);
 
+      const duplicate = books.find(
+        (b) =>
+          b.title.toLowerCase() === validated.title.toLowerCase() &&
+          b.id !== book?.id,
+      );
+
+      if (duplicate) {
+        showToast(
+          `A book with the title "${validated.title}" already exists!`,
+          "warning",
+        );
+        return;
+      }
+
       const savedBook: Book = book?.id
         ? await BookService.update({ ...validated, id: book.id })
         : await BookService.create(validated);
-
       onSave?.(savedBook);
       onClose();
-      showToast("Book saved successfully!", "success");
+
+      !book?.id && showToast("Book saved successfully!", "success");
+
+      setErrors({});
     } catch (err) {
       if (err instanceof ZodError) {
-        const zodErr = err as ZodError;
-        const messages = zodErr.message;
-        showToast(messages, "danger");
+        const zodErr = err as ZodError<BookFormData>;
+
+        const fieldErrors: Partial<Record<keyof BookFormData, string>> = {};
+        zodErr.issues.forEach((issue) => {
+          if (issue.path && issue.path[0]) {
+            const field = issue.path[0] as keyof BookFormData;
+            fieldErrors[field] = issue.message;
+          }
+        });
+        setErrors(fieldErrors);
       } else if (err instanceof Error) {
         showToast(err.message || "An unexpected error occurred.", "danger");
       } else {
         showToast("An unexpected error occurred.", "danger");
       }
-
-      console.error(err);
     }
   };
 
@@ -124,7 +123,13 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
           <Button variant="outline" size="small" onClick={onClose}>
             Cancel
           </Button>
-          <Button size="small" onClick={handleSubmit}>
+          <Button
+            size="small"
+            onClick={() => {
+              handleSubmit();
+            }}
+            type="button"
+          >
             {book ? "Update" : "Create"}
           </Button>
         </div>
@@ -133,6 +138,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         <Input
           label="Title"
+          required
           type="text"
           value={formData.title}
           onChange={(e) => handleChange("title", e.target.value)}
@@ -140,6 +146,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         />
         <Input
           label="Author"
+          required
           type="text"
           value={formData.author}
           onChange={(e) => handleChange("author", e.target.value)}
@@ -147,6 +154,7 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         />
         <Input
           label="Publisher"
+          required
           type="text"
           value={formData.publisher}
           onChange={(e) => handleChange("publisher", e.target.value)}
@@ -154,13 +162,15 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
         />
         <Input
           label="Published Date"
-          type="text"
+          required
+          type="date"
           value={formData.publishedDate}
           onChange={(e) => handleChange("publishedDate", e.target.value)}
           error={errors.publishedDate}
         />
         <Input
           label="Overview"
+          required
           type="text"
           value={formData.overview}
           onChange={(e) => handleChange("overview", e.target.value)}
@@ -168,23 +178,25 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
           textarea
         />
         <Input
-          label="Age"
+          label={`Age (Calculated automatically from Published Date)`}
+          required
           type="number"
-          value={(formData.age ?? 0).toString()}
-          onChange={(e) =>
-            handleChange("age", parseInt(e.target.value, 10) || 0)
-          }
+          value={calculateBookAge(formData.publishedDate).toString()}
           error={errors.age}
+          disabled
+          onChange={function (): void {
+            throw new Error("Function not implemented.");
+          }}
         />
         <Input
           label="Email"
+          required
           type="email"
           value={formData.email ?? ""}
           onChange={(e) => handleChange("email", e.target.value)}
           error={errors.email}
         />
       </div>
-      <Toasts />
     </Modal>
   );
 };
