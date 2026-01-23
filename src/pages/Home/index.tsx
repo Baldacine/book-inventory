@@ -10,6 +10,9 @@ import { BookFormModal } from "./components/BookFormModal/BookFormModal";
 import { Edit2, Trash, Eye } from "lucide-react";
 import { Table } from "@/shared/designSystem/Table/Table";
 import { useToast } from "@/hooks/useToast";
+import { List } from "@/shared/designSystem/List/List";
+import { useResponsive } from "@/hooks/useResponsive";
+import { Search } from "@/shared/designSystem/Search/Search";
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,9 +28,11 @@ export const HomePage: React.FC = () => {
     deleteBook,
   } = useBooks();
   const { showToast, Toasts } = useToast();
+  const { isMobile } = useResponsive();
 
   const [selectedBook, setSelectedBook] = useState<Book | undefined>();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   const columns: Column<Book>[] = [
     {
@@ -89,6 +94,12 @@ export const HomePage: React.FC = () => {
     }
   };
 
+  const filteredBooks = books.filter(
+    (b) =>
+      b.title.toLowerCase().includes(search.toLowerCase()) ||
+      b.author.toLowerCase().includes(search.toLowerCase()),
+  );
+
   return (
     <Container>
       <AreaTitleButton>
@@ -104,53 +115,106 @@ export const HomePage: React.FC = () => {
         </Button>
       </AreaTitleButton>
 
+      <Search
+        value={search}
+        onChange={setSearch}
+        placeholder="Search by title or author"
+        onClear={() => setSearch("")}
+      />
+
       {error && <ErrorMessage>{error}</ErrorMessage>}
 
-      <Table
-        columns={columns}
-        data={books}
-        actions={(book) => (
-          <div style={{ display: "flex", gap: "8px" }}>
-            <Button
-              size="small"
-              variant="circle"
-              onClick={() => navigate(`/books/${book.id}`, { state: { book } })}
-              title="View Book"
-            >
-              <Eye size={14} />
-            </Button>
-
-            <Button
-              size="small"
-              variant="circle"
-              onClick={() => {
-                setSelectedBook(book);
-                setIsModalOpen(true);
-              }}
-              title="Edit Book"
-            >
-              <Edit2 size={14} />
-            </Button>
-
-            <Button
-              size="small"
-              variant="circle"
-              color="red"
-              style={{ color: "red" }}
-              onClick={() => {
-                removeBook(book);
-              }}
-              title="Delete Book"
-            >
-              <Trash size={14} />
-            </Button>
-          </div>
-        )}
-        loading={loading}
-        hasMore={hasNextPage}
-        loadMoreRef={loadMoreRef}
-        total={total}
-      />
+      {isMobile ? (
+        <List
+          items={filteredBooks.map((b) => ({ id: b.id, data: b }))}
+          renderItem={(book: Book) => (
+            <>
+              <span style={{ fontWeight: 600 }}>{book.title}</span>
+              <span>{book.author}</span>
+            </>
+          )}
+          actions={(book: Book) => (
+            <>
+              <Button
+                size="small"
+                variant="circle"
+                onClick={() =>
+                  navigate(`/books/${book.id}`, { state: { book } })
+                }
+              >
+                <Eye size={14} />
+              </Button>
+              <Button
+                size="small"
+                variant="circle"
+                onClick={() => {
+                  setSelectedBook(book);
+                  setIsModalOpen(true);
+                }}
+              >
+                <Edit2 size={14} />
+              </Button>
+              <Button
+                size="small"
+                variant="circle"
+                color="red"
+                onClick={() => removeBook(book)}
+              >
+                <Trash size={14} />
+              </Button>
+            </>
+          )}
+          hasMore={hasNextPage}
+          loadMore={fetchNextPage}
+          loading={loading}
+          noItemsMessage="No books available."
+          total={total}
+        />
+      ) : (
+        <Table
+          columns={columns}
+          data={filteredBooks}
+          actions={(book) => (
+            <div style={{ display: "flex", gap: "8px" }}>
+              <Button
+                size="small"
+                variant="circle"
+                onClick={() =>
+                  navigate(`/books/${book.id}`, { state: { book } })
+                }
+                title="View Book"
+              >
+                <Eye size={14} />
+              </Button>
+              <Button
+                size="small"
+                variant="circle"
+                onClick={() => {
+                  setSelectedBook(book);
+                  setIsModalOpen(true);
+                }}
+                title="Edit Book"
+              >
+                <Edit2 size={14} />
+              </Button>
+              <Button
+                size="small"
+                variant="circle"
+                color="red"
+                style={{ color: "red" }}
+                onClick={() => removeBook(book)}
+                title="Delete Book"
+              >
+                <Trash size={14} />
+              </Button>
+            </div>
+          )}
+          loading={loading}
+          hasMore={hasNextPage}
+          loadMoreRef={loadMoreRef}
+          total={total}
+        />
+      )}
 
       <BookFormModal
         isOpen={isModalOpen}
