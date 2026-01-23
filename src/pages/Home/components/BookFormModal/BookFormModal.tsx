@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-expressions */
-/* eslint-disable react-hooks/set-state-in-effect */
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState, useEffect, type ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import type { Book } from "@/@types/book";
 import { Modal } from "@/shared/designSystem/Modal/Modal";
 import { Button } from "@/shared/designSystem/Button/Button";
