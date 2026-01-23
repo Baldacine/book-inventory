@@ -3,7 +3,7 @@ import * as api from "@/services/api/api";
 import { BookCreateSchema, BookUpdateSchema, BookSchema } from "@/services/schemas/bookSchema";
 
 export const BookService = {
-    getAll: (page = 1, limit = 5, query = "fiction") => api.getAll(page, limit, query),
+    getAll: (page = 1, limit = 10, query = "fiction") => api.getAll(page, limit, query),
     getLocal: () => api.getLocalBooks(),
 
     getById: async (id: string): Promise<Book> => {

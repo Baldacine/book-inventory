@@ -4,7 +4,7 @@ import type { Book } from "@/@types/book";
 
 type BooksPage = { data: Book[]; total: number };
 
-export const useBooks = (queryParam: string = "fiction", limitParam: number = 5) => {
+export const useBooks = (queryParam: string = "fiction", limitParam: number = 10) => {
     const queryClient = useQueryClient();
 
     const localBooksQuery = useQuery<Book[], Error>({
@@ -18,9 +18,9 @@ export const useBooks = (queryParam: string = "fiction", limitParam: number = 5)
         queryFn: async ({ pageParam = 1 }) =>
             BookService.getAll(pageParam as number, limitParam, queryParam),
         getNextPageParam: (lastPage, allPages) => {
-            if (lastPage.data.length < limitParam) {
-                return undefined;
-            }
+            const loadedItems = allPages.reduce((acc, page) => acc + page.data.length, 0);
+            const hasReachedTotal = loadedItems >= lastPage.total;
+            if (hasReachedTotal) return undefined;
             return allPages.length + 1;
         },
         initialPageParam: 1,
