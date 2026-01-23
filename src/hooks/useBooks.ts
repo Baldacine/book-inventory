@@ -18,8 +18,10 @@ export const useBooks = (queryParam: string = "fiction", limitParam: number = 5)
         queryFn: async ({ pageParam = 1 }) =>
             BookService.getAll(pageParam as number, limitParam, queryParam),
         getNextPageParam: (lastPage, allPages) => {
-            const totalPages = Math.ceil(lastPage.total / limitParam);
-            return allPages.length < totalPages ? allPages.length + 1 : undefined;
+            if (lastPage.data.length < limitParam) {
+                return undefined;
+            }
+            return allPages.length + 1;
         },
         initialPageParam: 1,
         staleTime: 1000 * 60 * 5,

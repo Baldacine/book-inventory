@@ -1,27 +1,20 @@
-/* eslint-disable react-refresh/only-export-components */
-import type { ReactElement, ReactNode } from "react";
-import { render, type RenderOptions } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { AppThemeProvider } from "@/app/providers/AppThemeProvider";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactElement } from "react";
+import {
+  render as rtlRender,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
+import type { RenderOptions } from "@testing-library/react";
+import "@testing-library/jest-dom";
 
-const AllProviders = ({ children }: { children: ReactNode }) => {
-  const queryClient = new QueryClient();
-  return (
-    <MemoryRouter>
-      <QueryClientProvider client={queryClient}>
-        <AppThemeProvider>{children}</AppThemeProvider>
-      </QueryClientProvider>
-    </MemoryRouter>
-  );
-};
+import { AllProviders } from "./providers/AllProviders";
 
 const customRender = (
   ui: ReactElement,
   options?: Omit<RenderOptions, "wrapper">,
-) => render(ui, { wrapper: AllProviders, ...options });
+) => rtlRender(ui, { wrapper: AllProviders, ...options });
 
-export * from "@testing-library/react";
 export { customRender as render };
 
-import "@testing-library/jest-dom";
+export { screen, fireEvent, waitFor };
