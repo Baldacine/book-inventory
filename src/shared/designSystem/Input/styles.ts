@@ -1,5 +1,9 @@
 import styled, { css } from "styled-components";
 
+interface StyledFieldProps {
+  hasError?: boolean;
+}
+
 export const InputWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -7,6 +11,7 @@ export const InputWrapper = styled.div`
 
 export const Label = styled.label`
   font-weight: ${({ theme }) => theme.typography.fontWeights.medium};
+   font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   margin-bottom: 4px;
 `;
 
@@ -22,11 +27,6 @@ export const ErrorMessage = styled.span`
   margin-top: 2px;
 `;
 
-// Adiciona prop `hasError` para estilizar borda vermelha
-interface StyledFieldProps {
-  hasError?: boolean;
-}
-
 export const StyledInput = styled.input<StyledFieldProps>`
   padding: 8px 12px;
   border: 1px solid ${({ theme }) => theme.colors.gray300};
@@ -39,6 +39,12 @@ export const StyledInput = styled.input<StyledFieldProps>`
   &:focus {
     outline: none;
     border-color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:disabled {
+    color: ${({ theme }) => theme.colors.gray300};
+    border-color: ${({ theme }) => theme.colors.gray300};
+    cursor: no-drop;
   }
 
   ${({ hasError, theme }) =>

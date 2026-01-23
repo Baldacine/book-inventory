@@ -11,7 +11,6 @@ export interface GoogleBookVolumeInfo {
 }
 
 export interface GoogleBookItem {
-
     searchInfo?: {
         textSnippet?: string;
     };

@@ -16,6 +16,7 @@ export const TableWrapper = styled.div<{ height: number }>`
     max-height: ${({ height }) => (height * 0.75)}px;
   }
 `;
+
 export const TableElement = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -40,12 +41,12 @@ export const TableElement = styled.table`
     background-color: ${({ theme }) => theme.colors.gray100};
   }
 
-  @media (max-width: 768px) {
-    th,
-    td {
-      padding: 8px 12px;
+  @media ${device.mobile} {
+    th.title, th.author, th.actions {
+      width: auto;
     }
   }
+
 `;
 
 export const LoadMoreWrapper = styled.div`
@@ -55,9 +56,8 @@ export const LoadMoreWrapper = styled.div`
 `;
 
 export const TotalItems = styled.div`
-  text-align: right;
-  font-size: 14px;
   text-align: center;
+  font-size: ${({ theme }) => theme.typography.fontSizes.sm};
   color: ${({ theme }) => theme.colors.gray700};
   margin: 8px 0;
 `;

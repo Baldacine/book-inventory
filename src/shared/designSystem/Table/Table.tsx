@@ -8,6 +8,7 @@ import {
 import { Loading } from "../Loading/Loading";
 import type { TableProps } from "./type";
 import { useTableHeight } from "@/hooks/useTableHeight";
+import { useNavigate } from "react-router-dom";
 
 export function Table<T extends { id: string }>({
   columns,
@@ -16,7 +17,9 @@ export function Table<T extends { id: string }>({
   loading = false,
   hasMore,
   loadMoreRef,
+  total,
 }: TableProps<T>) {
+  const navigate = useNavigate();
   const tableHeight = useTableHeight(200);
 
   return (
@@ -41,7 +44,13 @@ export function Table<T extends { id: string }>({
                     ? col.accessor(row)
                     : row[col.accessor];
                 return (
-                  <td key={String(col.accessor)} style={{ width: col.width }}>
+                  <td
+                    key={String(col.accessor)}
+                    style={{ width: col.width }}
+                    onClick={() =>
+                      navigate(`/books/${row.id}`, { state: { book: row } })
+                    }
+                  >
                     {value}
                   </td>
                 );
@@ -65,7 +74,9 @@ export function Table<T extends { id: string }>({
       {hasMore && !loading && (
         <div ref={loadMoreRef} style={{ height: 1 }}>
           <Loading />
-          <TotalItems>{data.length} books loaded</TotalItems>
+          <TotalItems>
+            Showing {data.length} of {total} books
+          </TotalItems>
         </div>
       )}
     </TableWrapper>

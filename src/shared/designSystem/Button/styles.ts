@@ -42,6 +42,20 @@ const buttonVariants: Record<ButtonVariant, (theme: DefaultTheme) => string> = {
             color: ${theme.colors.white};
         }
     `,
+    text: (theme) => `
+        background: transparent;
+        color: ${theme.colors.primary};
+        border: none;
+        padding: 0;
+        &:hover:not(:disabled) {
+        text-decoration: underline;
+        background: transparent;
+        }
+        &:disabled {
+        color: ${theme.colors.gray300};
+        cursor: not-allowed;
+        }
+  `,
     circle: (theme) => `
         background: transparent;
         color: ${theme.colors.primary};

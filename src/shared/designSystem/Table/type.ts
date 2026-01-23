@@ -10,5 +10,5 @@ export interface TableProps<T extends { id: string }> {
     loadMore?: () => void;
     hasMore?: boolean;
     loadMoreRef?: (node: HTMLDivElement | null) => void;
-
+    total: number;
 }
