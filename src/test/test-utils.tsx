@@ -5,7 +5,6 @@ import { MemoryRouter } from "react-router-dom";
 import { AppThemeProvider } from "@/app/providers/AppThemeProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// cria um QueryClient fresh para cada teste
 const AllProviders = ({ children }: { children: ReactNode }) => {
   const queryClient = new QueryClient();
   return (
