@@ -1,7 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-expressions */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { Book } from "@/@types/book";
 import { Modal } from "@/shared/designSystem/Modal/Modal";
 import { Button } from "@/shared/designSystem/Button/Button";
@@ -44,16 +41,15 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
     email: "",
   };
 
-  const [formData, setFormData] = useState<BookFormData>(emptyForm);
+  const [formData, setFormData] = useState<BookFormData>(() => {
+    if (!book) return emptyForm;
+
+    const { ...rest } = book;
+    return rest;
+  });
   const [errors, setErrors] = useState<
     Partial<Record<keyof BookFormData, string>>
   >({});
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setFormData(book ? (({ id, ...rest }) => rest)(book) : emptyForm);
-    setErrors({});
-  }, [book, isOpen]);
 
   const handleChange = (field: keyof BookFormData, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -84,7 +80,9 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
       onSave?.(savedBook);
       onClose();
 
-      !book?.id && showToast("Book saved successfully!", "success");
+      if (!book?.id) {
+        showToast("Book saved successfully!", "success");
+      }
 
       setErrors({});
     } catch (err) {
@@ -173,8 +171,8 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
           type="text"
           value={formData.overview}
           onChange={(e) => handleChange("overview", e.target.value)}
-          error={errors.overview}
           textarea
+          error={errors.overview}
         />
         <Input
           label={`Age (Calculated automatically from Published Date)`}
@@ -183,9 +181,6 @@ export const BookFormModal: React.FC<BookFormModalProps> = ({
           value={calculateBookAge(formData.publishedDate).toString()}
           error={errors.age}
           disabled
-          onChange={function (): void {
-            throw new Error("Function not implemented.");
-          }}
         />
         <Input
           label="Email"
