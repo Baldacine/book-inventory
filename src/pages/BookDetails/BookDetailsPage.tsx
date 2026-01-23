@@ -19,12 +19,14 @@ import { BookFormModal } from "../Home/components/BookFormModal/BookFormModal";
 import { useToast } from "@/hooks/useToast";
 import { useBooks } from "@/hooks/useBooks";
 import { books } from "@/services/api/mocks/books";
+import missingBook from "../../assets/images/missingbook.webp";
+import { Loading } from "@/shared/designSystem/Loading/Loading";
 
 export const BookDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const stateBook = location.state?.book as Book | undefined;
-  const { updateBook } = useBooks();
+  const { loading, updateBook } = useBooks();
 
   const [book, setBook] = useState<Book | null>(stateBook ?? null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,6 +42,8 @@ export const BookDetailsPage: React.FC = () => {
       showToast("Failed to update book", "danger");
     }
   };
+
+  if (loading) return <Loading />;
 
   if (!book)
     return (
@@ -73,9 +77,10 @@ export const BookDetailsPage: React.FC = () => {
 
       <BookCard>
         <BookContent>
-          {book.thumbnail && (
-            <BookCover src={book.thumbnail} alt={book.title} />
-          )}
+          <BookCover
+            src={book.thumbnail ? book.thumbnail : missingBook}
+            alt={book.title}
+          />
           <div>
             <BookHeader>
               <BookTitle>{book.title}</BookTitle>
@@ -86,11 +91,20 @@ export const BookDetailsPage: React.FC = () => {
               </BookMeta>
               <BookMeta>
                 <span>
-                  <strong>Publisher:</strong> {book.publisher}
+                  <strong>Age:</strong> {book.age}
                 </span>
                 |
                 <span>
                   <strong>Published Date:</strong> {book.publishedDate}
+                </span>
+              </BookMeta>
+              <BookMeta>
+                <span>
+                  <strong>Publisher:</strong> {book.publisher}
+                </span>
+                |
+                <span>
+                  <strong>E-mail:</strong> {book.email}
                 </span>
               </BookMeta>
             </BookHeader>
