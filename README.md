@@ -16,6 +16,28 @@ The main goal of this project is to show how to structure a React application, m
 - **Zustand** – Manages global application state in a simple way
 - **React Query** – Handles asynchronous data fetching and caching
 - **Styled Components** – Used for component-based styling
+- **Zods** – Used for schema validation and form data validation, ensuring data consistency and safety
+
+## Design System Approach
+
+- Instead of using a third-party UI component library, this project implements a custom Design System.
+- The goal of this approach is to:
+- Have full control over component behavior and styling
+- Create reusable, consistent UI components (Button, Table, List, Search, etc.)
+- Demonstrate understanding of component abstraction and scalability
+- Avoid unnecessary dependencies and reduce bundle size
+
+This decision reflects a focus on architecture, maintainability, and long-term scalability, which are important aspects in real-world front-end projects.
+
+## Features
+
+- Book listing with responsive layout (Table for desktop, List for mobile)
+- Infinite scroll pagination
+- Search and filtering by title or author
+- Create, edit, and delete books
+- Form validation with Zod
+- Responsive design with mobile-first considerations
+- Unit and integration tests for key pages
 
 ## How to Run the Project
 
