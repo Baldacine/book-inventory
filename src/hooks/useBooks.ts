@@ -1,64 +1,79 @@
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BookService } from "@/services/BookService";
-import type { Book } from "@/@types/book";
+import {
+    useInfiniteQuery,
+    useMutation,
+    useQuery,
+    useQueryClient,
+    type InfiniteData,
+} from "@tanstack/react-query";
+import { BookService } from "@/domain/services/BookService";
+import type { Book } from "@/domain/entities/Book";
 
-type BooksPage = { data: Book[]; total: number };
+export type BooksPage = {
+    data: Book[];
+    total: number;
+};
 
-export const useBooks = (queryParam: string = "fiction", limitParam: number = 10) => {
+export const useBooks = (query = "fiction", limit = 10) => {
     const queryClient = useQueryClient();
 
-    const localBooksQuery = useQuery<Book[], Error>({
+    const localBooksQuery = useQuery<Book[]>({
         queryKey: ["books-local"],
-        queryFn: () => BookService.getLocal(),
+        queryFn: BookService.getLocal,
         staleTime: Infinity,
     });
 
-    const booksQuery = useInfiniteQuery<BooksPage, Error>({
-        queryKey: ["books", queryParam, limitParam],
-        queryFn: async ({ pageParam = 1 }) =>
-            BookService.getAll(pageParam as number, limitParam, queryParam),
-        getNextPageParam: (lastPage, allPages) => {
-            const loadedItems = allPages.reduce((acc, page) => acc + page.data.length, 0);
-            const hasReachedTotal = loadedItems >= lastPage.total;
-            if (hasReachedTotal) return undefined;
-            return allPages.length + 1;
-        },
+    const booksQuery = useInfiniteQuery<BooksPage>({
+        queryKey: ["books", query, limit],
         initialPageParam: 1,
+        queryFn: ({ pageParam }) =>
+            BookService.getAll(pageParam as number, limit, query),
+
+        getNextPageParam: (lastPage, pages) => {
+            const loaded = pages.reduce((acc, p) => acc + p.data.length, 0);
+            return loaded >= lastPage.total ? undefined : pages.length + 1;
+        },
+
         staleTime: 1000 * 60 * 5,
     });
 
-    const combineUniqueBooks = (): Book[] => {
-        const combined = [...(localBooksQuery.data || []), ...(booksQuery.data?.pages.flatMap(p => p.data) || [])];
-        const uniqueMap = new Map<string, Book>();
-        combined.forEach(book => {
-            uniqueMap.set(book.id, book);
-        });
-        return Array.from(uniqueMap.values());
-    };
+    const books: Book[] = [
+        ...(localBooksQuery.data ?? []),
+        ...(booksQuery.data?.pages.flatMap((p) => p.data) ?? []),
+    ].filter(
+        (book, index, self) =>
+            index === self.findIndex((b) => b.id === book.id)
+    );
 
-    const addBookMutation = useMutation<Book, Error, Omit<Book, "id">>({
-        mutationFn: (bookToAdd) => BookService.create(bookToAdd),
-        onSuccess: (newBook) => {
-            queryClient.setQueryData<Book[]>(["books-local"], (old = []) => [newBook, ...old]);
+
+    const addBook = useMutation({
+        mutationFn: BookService.create,
+        onSuccess: (created) => {
+            queryClient.setQueryData<Book[]>(["books-local"], (old = []) => [
+                created,
+                ...old,
+            ]);
         },
     });
 
-    const updateBookMutation = useMutation<Book, Error, Book>({
-        mutationFn: (bookToUpdate) => BookService.update(bookToUpdate),
-        onSuccess: (updatedBook) => {
+    const updateBook = useMutation({
+        mutationFn: BookService.update,
+
+        onSuccess: (updated) => {
             queryClient.setQueryData<Book[]>(["books-local"], (old = []) =>
-                old.map((b) => (b.id === updatedBook.id ? updatedBook : b))
+                old.map((b) => (b.id === updated.id ? updated : b))
             );
-            queryClient.setQueryData<{ pages: BooksPage[]; pageParams: number[] }>(
-                ["books", queryParam, limitParam],
-                (oldData) => {
-                    if (!oldData) return oldData;
+
+            queryClient.setQueriesData<InfiniteData<BooksPage>>(
+                { queryKey: ["books"] },
+                (data) => {
+                    if (!data) return data;
+
                     return {
-                        ...oldData,
-                        pages: oldData.pages.map((page) => ({
+                        ...data,
+                        pages: data.pages.map((page) => ({
                             ...page,
                             data: page.data.map((b) =>
-                                b.id === updatedBook.id ? updatedBook : b
+                                b.id === updated.id ? updated : b
                             ),
                         })),
                     };
@@ -67,22 +82,24 @@ export const useBooks = (queryParam: string = "fiction", limitParam: number = 10
         },
     });
 
+    const deleteBook = useMutation({
+        mutationFn: BookService.delete,
 
-    const deleteBookMutation = useMutation<void, Error, string>({
-        mutationFn: (idToDelete) => BookService.delete(idToDelete),
-        onSuccess: (_, idToDelete) => {
+        onSuccess: (_, id) => {
             queryClient.setQueryData<Book[]>(["books-local"], (old = []) =>
-                old.filter((b) => b.id !== idToDelete)
+                old.filter((b) => b.id !== id)
             );
-            queryClient.setQueryData<{ pages: BooksPage[]; pageParams: number[] }>(
-                ["books", queryParam, limitParam],
-                (oldData) => {
-                    if (!oldData) return oldData;
+
+            queryClient.setQueriesData<InfiniteData<BooksPage>>(
+                { queryKey: ["books"] },
+                (data) => {
+                    if (!data) return data;
+
                     return {
-                        ...oldData,
-                        pages: oldData.pages.map((page) => ({
+                        ...data,
+                        pages: data.pages.map((page) => ({
                             ...page,
-                            data: page.data.filter((b) => b.id !== idToDelete),
+                            data: page.data.filter((b) => b.id !== id),
                             total: page.total - 1,
                         })),
                     };
@@ -91,18 +108,16 @@ export const useBooks = (queryParam: string = "fiction", limitParam: number = 10
         },
     });
 
-    const combinedBooks = combineUniqueBooks();
-
     return {
-        books: combinedBooks,
+        books,
         total: (localBooksQuery.data?.length || 0) + (booksQuery.data?.pages[0]?.total || 0),
         hasNextPage: booksQuery.hasNextPage,
         fetchNextPage: booksQuery.fetchNextPage,
         loading: booksQuery.isLoading || localBooksQuery.isLoading,
-        error: booksQuery.error?.message || localBooksQuery.error?.message,
+        error: booksQuery.error ?? localBooksQuery.error,
 
-        addBook: addBookMutation.mutateAsync,
-        updateBook: updateBookMutation.mutateAsync,
-        deleteBook: deleteBookMutation.mutateAsync,
+        addBook: addBook.mutateAsync,
+        updateBook: updateBook.mutateAsync,
+        deleteBook: deleteBook.mutateAsync,
     };
 };

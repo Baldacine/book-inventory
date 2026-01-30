@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@/test/test-utils";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { HomePage } from "@/pages/Home";
+import { HomePage } from "@/app/pages/Home";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppThemeProvider } from "@/app/providers/AppThemeProvider";
 
