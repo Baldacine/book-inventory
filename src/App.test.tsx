@@ -1,12 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, type To } from "react-router-dom";
 import { describe, it, expect } from "vitest";
-import { HomePage } from "@/pages/Home";
-import { BookDetailsPage } from "@/pages/BookDetails/BookDetailsPage";
+import { HomePage } from "@/app/pages/Home";
+import { BookDetailsPage } from "@/app/pages/BookDetails/BookDetailsPage";
 import { AppThemeProvider } from "@/app/providers/AppThemeProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement, ReactNode } from "react";
-import type { Book } from "@/@types/book";
+import type { Book } from "@/domain/entities/Book";
 
 const mockBook: Book = {
   id: "1",

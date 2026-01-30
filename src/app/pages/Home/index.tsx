@@ -1,18 +1,17 @@
 import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Book } from "@/@types/book";
 import type { Column } from "@/@types/table";
-
 import { useBooks } from "@/hooks/useBooks";
 import { Button } from "@/shared/designSystem/Button/Button";
 import { Container, AreaTitleButton, ErrorMessage } from "./styles";
-import { BookFormModal } from "./components/BookFormModal/BookFormModal";
-import { Edit2, Trash, Eye } from "lucide-react";
 import { Table } from "@/shared/designSystem/Table/Table";
-import { useToast } from "@/hooks/useToast";
 import { List } from "@/shared/designSystem/List/List";
+import { useToast } from "@/hooks/useToast";
 import { useResponsive } from "@/hooks/useResponsive";
 import { Search } from "@/shared/designSystem/Search/Search";
+import { BookActions } from "@/components/BookActions";
+import { BookFormModal } from "@/components/BookForm/BookFormModal";
+import type { Book } from "@/domain/entities/Book";
 
 export const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -39,15 +38,8 @@ export const HomePage: React.FC = () => {
       header: "Title",
       accessor: (book) => (
         <span
-          style={{
-            cursor: "pointer",
-            textDecoration: "none",
-            color: "#007bff",
-            fontSize: "14px",
-          }}
-          onClick={() => {
-            navigate(`/books/${book.id}`, { state: { book } });
-          }}
+          style={{ cursor: "pointer", color: "#007bff" }}
+          onClick={() => navigate(`/books/${book.id}`, { state: { book } })}
         >
           {book.title}
         </span>
@@ -58,45 +50,31 @@ export const HomePage: React.FC = () => {
   ];
 
   const observerRef = useRef<IntersectionObserver | null>(null);
-
   const loadMoreRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (loading) return;
       if (observerRef.current) observerRef.current.disconnect();
-
       observerRef.current = new IntersectionObserver(
         (entries) => {
-          if (entries[0].isIntersecting && hasNextPage) {
-            fetchNextPage();
-          }
+          if (entries[0].isIntersecting && hasNextPage) fetchNextPage();
         },
-        {
-          root: null,
-          rootMargin: "100px",
-          threshold: 0,
-        },
+        { root: null, rootMargin: "100px", threshold: 0 },
       );
-
       if (node) observerRef.current.observe(node);
     },
     [loading, fetchNextPage, hasNextPage],
   );
 
   const removeBook = async (book: Book) => {
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete "${book.title}"?`,
-    );
-    if (!confirmDelete) return;
-
+    if (!window.confirm(`Are you sure you want to delete "${book.title}"?`))
+      return;
     try {
       await deleteBook(book.id);
       showToast(`Book "${book.title}" deleted successfully`, "success");
-    } catch (error) {
-      console.error("Error deleting book:", error);
+    } catch {
       showToast(`Failed to delete "${book.title}"`, "danger");
     }
   };
-
   const filteredBooks = books.filter(
     (b) =>
       b.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -124,8 +102,7 @@ export const HomePage: React.FC = () => {
         placeholder="Search by title or author"
         onClear={() => setSearch("")}
       />
-
-      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {error && <ErrorMessage>{error.message}</ErrorMessage>}
 
       {isMobile ? (
         <List
@@ -137,35 +114,15 @@ export const HomePage: React.FC = () => {
             </>
           )}
           actions={(book: Book) => (
-            <>
-              <Button
-                size="small"
-                variant="circle"
-                onClick={() =>
-                  navigate(`/books/${book.id}`, { state: { book } })
-                }
-              >
-                <Eye size={14} />
-              </Button>
-              <Button
-                size="small"
-                variant="circle"
-                onClick={() => {
-                  setSelectedBook(book);
-                  setIsModalOpen(true);
-                }}
-              >
-                <Edit2 size={14} />
-              </Button>
-              <Button
-                size="small"
-                variant="circle"
-                color="red"
-                onClick={() => removeBook(book)}
-              >
-                <Trash size={14} />
-              </Button>
-            </>
+            <BookActions
+              book={book}
+              onView={(b) => navigate(`/books/${b.id}`, { state: { b } })}
+              onEdit={(b) => {
+                setSelectedBook(b);
+                setIsModalOpen(true);
+              }}
+              onDelete={removeBook}
+            />
           )}
           hasMore={hasNextPage}
           loadMore={fetchNextPage}
@@ -178,39 +135,15 @@ export const HomePage: React.FC = () => {
           columns={columns}
           data={filteredBooks}
           actions={(book) => (
-            <div style={{ display: "flex", gap: "8px" }}>
-              <Button
-                size="small"
-                variant="circle"
-                onClick={() =>
-                  navigate(`/books/${book.id}`, { state: { book } })
-                }
-                title="View Book"
-              >
-                <Eye size={14} />
-              </Button>
-              <Button
-                size="small"
-                variant="circle"
-                onClick={() => {
-                  setSelectedBook(book);
-                  setIsModalOpen(true);
-                }}
-                title="Edit Book"
-              >
-                <Edit2 size={14} />
-              </Button>
-              <Button
-                size="small"
-                variant="circle"
-                color="red"
-                style={{ color: "red" }}
-                onClick={() => removeBook(book)}
-                title="Delete Book"
-              >
-                <Trash size={14} />
-              </Button>
-            </div>
+            <BookActions
+              book={book}
+              onView={(b) => navigate(`/books/${b.id}`, { state: { b } })}
+              onEdit={(b) => {
+                setSelectedBook(b);
+                setIsModalOpen(true);
+              }}
+              onDelete={removeBook}
+            />
           )}
           loading={loading}
           hasMore={hasNextPage}
@@ -229,18 +162,20 @@ export const HomePage: React.FC = () => {
           }}
           book={selectedBook}
           books={books}
-          onSave={async (savedBook: Book) => {
+          onSave={async (savedBook) => {
             if (selectedBook) {
               await updateBook(savedBook);
             } else {
               await addBook(savedBook);
             }
+
             setIsModalOpen(false);
             setSelectedBook(undefined);
           }}
           showToast={showToast}
         />
       )}
+
       <Toasts />
     </Container>
   );

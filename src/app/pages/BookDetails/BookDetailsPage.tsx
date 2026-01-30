@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/shared/designSystem/Button/Button";
 import { ArrowLeft } from "lucide-react";
@@ -14,36 +14,42 @@ import {
   BookOverview,
   FooterButtons,
 } from "./styles";
-import type { Book } from "@/@types/book";
-import { BookFormModal } from "../Home/components/BookFormModal/BookFormModal";
 import { useToast } from "@/hooks/useToast";
 import { useBooks } from "@/hooks/useBooks";
-import { books } from "@/services/api/mocks/books";
-import missingBook from "../../assets/images/missingbook.webp";
+import missingBook from "@/assets/images/missingbook.webp";
 import { Loading } from "@/shared/designSystem/Loading/Loading";
+import { BookFormModal } from "@/components/BookForm/BookFormModal";
+import type { Book } from "@/domain/entities/Book";
 
 export const BookDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const stateBook = location.state?.book as Book | undefined;
-  const { loading, updateBook } = useBooks();
+
+  const { loading: booksLoading, updateBook, books } = useBooks();
+  const { showToast, Toasts } = useToast();
 
   const [book, setBook] = useState<Book | null>(stateBook ?? null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { showToast, Toasts } = useToast();
+
+  const toastShownRef = useRef(false);
+
+  useEffect(() => {
+    if (!book && !toastShownRef.current) {
+      toastShownRef.current = true;
+      setTimeout(() => {
+        showToast("Book not found", "danger");
+      }, 0);
+    }
+  }, [book, showToast]);
 
   const handleUpdate = async (updatedBook: Book) => {
-    try {
-      await updateBook(updatedBook);
-      setBook(updatedBook);
-      showToast(`Book "${updatedBook.title}" updated successfully`, "success");
-    } catch (err) {
-      console.error(err);
-      showToast("Failed to update book", "danger");
-    }
+    await updateBook(updatedBook);
+    setBook(updatedBook);
+    showToast(`Book "${updatedBook.title}" updated successfully`, "success");
   };
 
-  if (loading) return <Loading />;
+  if (booksLoading) return <Loading />;
 
   if (!book)
     return (
@@ -58,7 +64,7 @@ export const BookDetailsPage: React.FC = () => {
             <ArrowLeft size={16} /> Back
           </Button>
         </BackButtonWrapper>
-        Book not found
+        <p>Book not found.</p>
       </Container>
     );
 
@@ -77,10 +83,7 @@ export const BookDetailsPage: React.FC = () => {
 
       <BookCard>
         <BookContent>
-          <BookCover
-            src={book.thumbnail ? book.thumbnail : missingBook}
-            alt={book.title}
-          />
+          <BookCover src={book.thumbnail || missingBook} alt={book.title} />
           <div>
             <BookHeader>
               <BookTitle>{book.title}</BookTitle>
@@ -93,7 +96,7 @@ export const BookDetailsPage: React.FC = () => {
                 <span>
                   <strong>Age:</strong> {book.age}
                 </span>
-                |
+                {" | "}
                 <span>
                   <strong>Published Date:</strong> {book.publishedDate}
                 </span>
@@ -102,9 +105,9 @@ export const BookDetailsPage: React.FC = () => {
                 <span>
                   <strong>Publisher:</strong> {book.publisher}
                 </span>
-                |
+                {" | "}
                 <span>
-                  <strong>E-mail:</strong> {book.email}
+                  <strong>Email:</strong> {book.email}
                 </span>
               </BookMeta>
             </BookHeader>
@@ -132,6 +135,7 @@ export const BookDetailsPage: React.FC = () => {
           showToast={showToast}
         />
       )}
+
       <Toasts />
     </Container>
   );

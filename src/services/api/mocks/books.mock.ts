@@ -1,11 +1,11 @@
-import type { Book } from "@/@types/book";
+import type { Book } from "@/domain/entities/Book";
 
-export const books: Book[] = [
+export const booksMock: Book[] = [
     {
         id: "local_1",
         title: "The Great Gatsby",
         author: "F. Scott Fitzgerald",
-        category: "",
+        category: "Classic",
         publishedDate: "1949-11-01",
         publisher: "Charles Scribner's Sons",
         overview: "A novel about the American dream.",
@@ -15,9 +15,9 @@ export const books: Book[] = [
     },
     {
         id: "local_2",
-        title: "1984-02-01",
+        title: "1984",
         author: "George Orwell",
-        category: "",
+        category: "Dystopian",
         publishedDate: "1949",
         publisher: "Secker & Warburg",
         overview: "Dystopian social science fiction novel.",
@@ -28,8 +28,8 @@ export const books: Book[] = [
     {
         id: "local_3",
         title: "To Kill a Mockingbird",
-        category: "",
         author: "Harper Lee",
+        category: "Drama",
         publishedDate: "1960-10-10",
         publisher: "J.B. Lippincott & Co.",
         overview: "A novel about racial injustice in the Deep South.",
@@ -40,8 +40,8 @@ export const books: Book[] = [
     {
         id: "local_4",
         title: "Pride and Prejudice",
-        category: "",
         author: "Jane Austen",
+        category: "Romance",
         publishedDate: "1813-09-12",
         publisher: "T. Egerton",
         overview: "Romantic novel about manners and marriage.",
@@ -52,8 +52,8 @@ export const books: Book[] = [
     {
         id: "local_5",
         title: "The Hobbit",
-        category: "",
         author: "J.R.R. Tolkien",
+        category: "Fantasy",
         publishedDate: "1937-08-01",
         publisher: "George Allen & Unwin",
         overview: "A fantasy novel and prelude to The Lord of the Rings.",
