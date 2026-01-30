@@ -1,4 +1,3 @@
-// src/pages/HomePage.tsx
 import { useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Column } from "@/@types/table";

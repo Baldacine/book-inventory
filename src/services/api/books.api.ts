@@ -5,7 +5,7 @@ import {
     cleanOverview,
     formatPublishedDateUS,
 } from "@/utils/helpers";
-import type { Book } from "../../domain/entities/Book";
+import type { Book } from "@/domain/entities/Book";
 
 const STORAGE_KEY = "books_inventory";
 const MAX_TOTAL_ITEMS = 100;

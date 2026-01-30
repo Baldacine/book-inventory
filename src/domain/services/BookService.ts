@@ -5,7 +5,7 @@ import {
 } from "@/domain/schemas/bookSchema";
 
 import { booksApi } from "@/services/api/books.api";
-import type { Book } from "../entities/Book";
+import type { Book } from "@/domain/entities/Book";
 
 export const BookService = {
     getAll: (page = 1, limit = 10, query = "fiction") =>
