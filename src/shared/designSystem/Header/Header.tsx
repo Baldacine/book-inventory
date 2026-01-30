@@ -18,7 +18,7 @@ export function Header({ themeMode, toggleTheme }: HeaderProps) {
 
   return (
     <StyledHeader $isScrolled={isScrolled}>
-      <h1>Olá</h1>
+      <h1></h1>
       <HeaderActions>
         <Button variant="circle" size="small" onClick={toggleTheme}>
           {themeMode === "light" ? <Moon size={20} /> : <Sun size={20} />}

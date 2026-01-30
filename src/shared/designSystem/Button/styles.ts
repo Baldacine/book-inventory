@@ -42,6 +42,20 @@ const buttonVariants: Record<ButtonVariant, (theme: DefaultTheme) => string> = {
             color: ${theme.colors.white};
         }
     `,
+    text: (theme) => `
+        background: transparent;
+        color: ${theme.colors.primary};
+        border: none;
+        padding: 0;
+        &:hover:not(:disabled) {
+        text-decoration: underline;
+        background: transparent;
+        }
+        &:disabled {
+        color: ${theme.colors.gray300};
+        cursor: not-allowed;
+        }
+  `,
     circle: (theme) => `
         background: transparent;
         color: ${theme.colors.primary};
@@ -50,9 +64,14 @@ const buttonVariants: Record<ButtonVariant, (theme: DefaultTheme) => string> = {
         padding: 0;
         aspect-ratio: 1 / 1; 
         &:hover:not(:disabled) {
-            background: ${theme.colors.gray100};
+            background: ${theme.colors.white};
             border-color: ${theme.colors.primary};
         }
+        &:disabled {
+            border-color: ${theme.colors.gray300};
+            color: ${theme.colors.gray300};
+        }
+            
     `,
 };
 

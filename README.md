@@ -1,73 +1,55 @@
-# React + TypeScript + Vite
+# Book Inventory Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a simple React application created to practice and demonstrate how to build a book inventory system using modern front-end tools.
 
-Currently, two official plugins are available:
+The main goal of this project is to show how to structure a React application, manage state, and handle data flow in a clear and organized way.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Live Demo
 
-## React Compiler
+<https://bookinventoryapp.vercel.app>
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Technologies Used
 
-## Expanding the ESLint configuration
+- **React** – Used to build the user interface with reusable components
+- **Vite** – Development server and build tool
+- **TypeScript** – Provides type safety and improves code reliability
+- **Zustand** – Manages global application state in a simple way
+- **React Query** – Handles asynchronous data fetching and caching
+- **Styled Components** – Used for component-based styling
+- **Zods** – Used for schema validation and form data validation, ensuring data consistency and safety
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Design System Approach
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Instead of using a third-party UI component library, this project implements a custom Design System.
+- The goal of this approach is to:
+- Have full control over component behavior and styling
+- Create reusable, consistent UI components (Button, Table, List, Search, etc.)
+- Demonstrate understanding of component abstraction and scalability
+- Avoid unnecessary dependencies and reduce bundle size
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+This decision reflects a focus on architecture, maintainability, and long-term scalability, which are important aspects in real-world front-end projects.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Features
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+- Book listing with responsive layout (Table for desktop, List for mobile)
+- Infinite scroll pagination
+- Search and filtering by title or author
+- Create, edit, and delete books
+- Form validation with Zod
+- Responsive design with mobile-first considerations
+- Unit and integration tests for key pages
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## How to Run the Project
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Requirements
+
+- Node.js installed
+- npm or yarn
+
+### Steps
+
+```bash
+git clone https://github.com/Baldacine/book-inventory.git
+cd book-inventory
+npm install
+npm run dev

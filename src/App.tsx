@@ -1,21 +1,20 @@
 import styled from "styled-components";
-import { useAppTheme } from "./app/providers/ThemeProvider";
-import { Header } from "./shared/designSystem/Header/Header";
+import { Header } from "@/shared/designSystem/Header/Header";
+import { useAppTheme } from "@/app/providers/ThemeProvider";
+import { AppRoutes } from "@/app/routes";
 
 const LayoutWrapper = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: ${(props) => props.theme.colors.background};
+  background-color: ${({ theme }) => theme.colors.background};
   color: ${({ theme }) => theme.colors.text};
   transition: background-color 0.3s ease;
 `;
 
 const MainContent = styled.main`
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 20px;
+  overflow-y: auto;
 `;
 
 function App() {
@@ -25,7 +24,7 @@ function App() {
     <LayoutWrapper>
       <Header themeMode={themeMode} toggleTheme={toggleTheme} />
       <MainContent>
-        <h1>Hello</h1>
+        <AppRoutes />
       </MainContent>
     </LayoutWrapper>
   );
